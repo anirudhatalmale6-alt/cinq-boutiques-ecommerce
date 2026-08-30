@@ -1,0 +1,7 @@
+# Les catalogues et les CSV ne sont PAS dans ce depot : ce sont les donnees
+# des cinq sites d'origine. Le depot ne contient que le moteur et les outils.
+csv/
+donnees/
+sites/
+*.sqlite
+__pycache__/
