@@ -82,13 +82,24 @@ function panier_detail() {
 function commandes_db() {
 	global $CFG;
 	$f = $CFG['commandes'];
-	$neuf = !file_exists($f);
 	$db = new PDO('sqlite:' . $f, null, null, array(
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 	));
-	if ($neuf) {
-		$db->exec('CREATE TABLE commandes (
+	// IF NOT EXISTS, et surtout PAS « si le fichier est absent ».
+	//
+	// L'ancienne version creait la table seulement quand le fichier n'existait
+	// pas encore. Or n'importe quoi peut creer ce fichier vide avant la
+	// premiere commande : un client FTP qui televerse un fichier de 0 octet,
+	// une restauration de sauvegarde, un outil qui ouvre la base pour la lire.
+	// Le fichier existait donc, la table non — et TOUTE commande repondait 500,
+	// pour toujours. Vu en vrai : commandes.sqlite a 0 octet et un panneau
+	// « erreur du serveur » a la place de la reference de commande.
+	//
+	// La question n'est pas « le fichier est-il la ? » mais « la table est-elle
+	// la ? ». C'est la seule des deux qui decide si la commande peut s'ecrire.
+	{
+		$db->exec('CREATE TABLE IF NOT EXISTS commandes (
 			id INTEGER PRIMARY KEY, reference TEXT UNIQUE NOT NULL,
 			creee_le TEXT NOT NULL, nom TEXT, courriel TEXT, telephone TEXT,
 			adresse TEXT, ville TEXT, code_postal TEXT, pays TEXT, note TEXT,

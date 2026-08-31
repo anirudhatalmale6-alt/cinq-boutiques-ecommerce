@@ -13,6 +13,7 @@ passer pour lui.
 
 import colorsys
 import os
+import sqlite3
 import shutil
 import sys
 
@@ -82,6 +83,11 @@ return array(
 
 	// Mettre a false si mod_rewrite n'est pas disponible sur l'hebergement.
 	'reecriture' => true,
+
+	// Cle de photos.php, l'outil qui va chercher les photos DEPUIS le serveur
+	// de la boutique. Vide = desactive, et c'est l'etat normal. On y met un
+	// mot de passe le temps de la recuperation, puis on le remet a vide.
+	'cle_photos' => '',
 );
 """
 
@@ -127,7 +133,7 @@ SITES = [
 
 
 def copier_moteur(dest):
-	for nom in ('index.php',):
+	for nom in ('index.php', 'photos.php'):
 		shutil.copy2(os.path.join(MOTEUR, nom), os.path.join(dest, nom))
 	for dossier in ('inc', 'vues', 'static'):
 		d = os.path.join(dest, dossier)
@@ -153,6 +159,18 @@ def construire(s):
 		                   for f in os.listdir(photos)
 		                   if os.path.isfile(os.path.join(photos, f))}
 
+	# Les fiches marquees « la source n'a pas de photo » (image = '') ne
+	# laissent aucun fichier derriere elles : le dossier ne peut pas les
+	# retrouver. Sans les mettre de cote ici, chaque reconstruction les
+	# remettrait a NULL et la passe suivante irait redemander a la source des
+	# images dont on sait deja qu'elle ne les a pas.
+	ancien = os.path.join(dest, 'donnees', 'catalogue.sqlite')
+	if os.path.isfile(ancien):
+		db = sqlite3.connect(ancien)
+		garde['absentes'] = [r[0] for r in db.execute(
+			"SELECT id FROM produits WHERE image = ''")]
+		db.close()
+
 	if os.path.isdir(dest):
 		shutil.rmtree(dest)
 	os.makedirs(os.path.join(dest, 'donnees'))
@@ -177,7 +195,28 @@ def construire(s):
 	open(os.path.join(dest, 'photos', '.gitkeep'), 'w').write('')
 
 	src = os.path.join(DONNEES, s['slug'] + '.sqlite')
-	shutil.copy2(src, os.path.join(dest, 'donnees', 'catalogue.sqlite'))
+	cible = os.path.join(dest, 'donnees', 'catalogue.sqlite')
+	shutil.copy2(src, cible)
+
+	# Le catalogue qu'on vient de reposer ne sait pas quelles photos ont ete
+	# deposees : la colonne `image` est vide dedans. Sans ce raccrochage, une
+	# simple correction du moteur rendait invisibles des milliers de photos
+	# pourtant bien presentes sur le disque. On relit le dossier, qui est la
+	# verite, et on remet la colonne d'aplomb.
+	fichiers = {f for f in os.listdir(photos)
+	            if os.path.isfile(os.path.join(photos, f)) and f != '.gitkeep'}
+	raccrochees = 0
+	if fichiers or garde.get('absentes'):
+		db = sqlite3.connect(cible)
+		db.executemany('UPDATE produits SET image = ? WHERE id = ?',
+		               [(f, int(f.split('.')[0])) for f in fichiers
+		                if f.split('.')[0].isdigit()])
+		db.executemany("UPDATE produits SET image = '' WHERE id = ?",
+		               [(i,) for i in garde.get('absentes', [])])
+		db.commit()
+		raccrochees = db.execute("SELECT COUNT(*) FROM produits"
+		                         " WHERE image IS NOT NULL AND image != ''").fetchone()[0]
+		db.close()
 
 	n = 0
 	octets = 0
@@ -185,7 +224,7 @@ def construire(s):
 		for f in fs:
 			n += 1
 			octets += os.path.getsize(os.path.join(r, f))
-	return n, octets
+	return n, octets, raccrochees
 
 
 def main():
@@ -193,13 +232,13 @@ def main():
 		print('Lancer outils/importer.py d’abord.')
 		return 1
 	os.makedirs(SORTIE, exist_ok=True)
-	print('%-13s %-9s %-5s %6s %12s' % ('boutique', 'devise', 'lang',
-	                                    'fich.', 'poids'))
+	print('%-13s %-9s %-5s %6s %12s %8s' % ('boutique', 'devise', 'lang',
+	                                        'fich.', 'poids', 'photos'))
 	for s in SITES:
-		n, octets = construire(s)
-		print('%-13s %-9s %-5s %6d %12s' % (
+		n, octets, photos = construire(s)
+		print('%-13s %-9s %-5s %6d %12s %8d' % (
 			s['slug'], s['devise'], s['langue'], n,
-			'%.1f Mo' % (octets / 1048576.0)))
+			'%.1f Mo' % (octets / 1048576.0), photos))
 	print('sites/ pret — un dossier par boutique, a deposer dans public_html')
 	return 0
 

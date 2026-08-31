@@ -102,6 +102,31 @@ def sans_accents(s):
 RAYON_INCONNU = 'Rayon non renseigné'
 
 
+# LE NOM DU COMMERCANT D'ORIGINE NE MONTE PAS DANS LA NAVIGATION.
+#
+# Trois rayons de tntsupermarket.com portent « T&T » et s'affichaient tels
+# quels dans la barre de menu de la boutique : « Marque privee T&T »,
+# « T&T cuisine », « T&T boulangerie ». Un menu qui annonce le nom d'un autre
+# commerce, c'est se faire passer pour lui — la meme regle que pour le nom de
+# la boutique.
+#
+# Ce sont des ETIQUETTES DE NAVIGATION, que j'ecris : les renommer ne touche
+# a aucune donnee produit. Les titres des produits, eux, ne sont pas touches
+# ici : ce sont des faits, et 257 d'entre eux sont des articles de la marque
+# propre de T&T. Les retirer du catalogue est une decision commerciale, pas
+# une correction — elle est signalee au client, chiffree, pas prise a sa place.
+RENOMMAGE_RAYONS = {
+	'tntsupermarket.csv': {
+		'Marque privée T&T': 'Marque privée',
+		'T&T cuisine':       'Cuisine préparée',
+		'T&T boulangerie':   'Boulangerie',
+		"T&T Kitchen":       'Cuisine préparée',
+		"T&T Bakery":        'Boulangerie',
+		"T&T Private Label": 'Marque privée',
+	},
+}
+
+
 def slugue(s):
 	"""« Fruits & legumes » -> « fruits-legumes ». Deux rayons differents ne
 	doivent jamais tomber sur le meme slug : l'appelant verifie."""
@@ -359,6 +384,14 @@ def construire(slug, fichier, adaptateur, devise):
 			doublons += 1
 			continue
 		vus.add(p['ref'])
+		# Le nom du commercant d'origine ne monte pas dans la navigation.
+		renom = RENOMMAGE_RAYONS.get(fichier)
+		if renom:
+			p['rayon'] = renom.get(p['rayon'], p['rayon'])
+			if p['sous_rayon']:
+				p['sous_rayon'] = renom.get(p['sous_rayon'], p['sous_rayon'])
+			if p.get('sous_rayon2'):
+				p['sous_rayon2'] = renom.get(p['sous_rayon2'], p['sous_rayon2'])
 		# Une note de 0 avec 0 avis n'est pas une note de zero : c'est
 		# l'absence de note. Mesure faite sur perfume.com : 4 278 lignes sur
 		# 6 958 sont dans ce cas. Les afficher mettrait cinq etoiles vides et

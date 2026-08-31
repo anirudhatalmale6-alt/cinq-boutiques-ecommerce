@@ -13,6 +13,7 @@ import sys
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DONNEES = os.path.join(RACINE, 'donnees')
+SITES = os.path.join(RACINE, 'sites')
 
 BOUTIQUES = [
 	('panier', 'Panier', 'Voila.csv', 'voila.ca'),
@@ -38,6 +39,17 @@ def pct(a, b):
 	return '%.0f %%' % v
 
 
+def photos(slug):
+	"""Compte les photos reellement posees dans la boutique construite. On lit
+	le dossier, pas la base : le disque est la verite, et c'est justement
+	l'ecart entre les deux qui avait rendu des photos invisibles."""
+	d = os.path.join(SITES, slug, 'photos')
+	if not os.path.isdir(d):
+		return 0, 0
+	fs = [f for f in os.listdir(d) if f.endswith('.jpg')]
+	return len(fs), sum(os.path.getsize(os.path.join(d, f)) for f in fs)
+
+
 def main():
 	out = []
 	w = out.append
@@ -46,10 +58,11 @@ def main():
 	w('bases. Aucun n’est saisi à la main.\n')
 
 	w('## Vue d’ensemble\n')
-	w('| Boutique | Source | Lignes CSV | Produits | Rayons | Marques | Fiches complètes |')
-	w('|---|---|---:|---:|---:|---:|---:|')
+	w('| Boutique | Source | Lignes CSV | Produits | Rayons | Marques | Fiches complètes | Photos déposées |')
+	w('|---|---|---:|---:|---:|---:|---:|---:|')
 	total_p = 0
 	total_c = 0
+	total_ph = 0
 	details = []
 	for slug, nom, csvf, site in BOUTIQUES:
 		db = sqlite3.connect(os.path.join(DONNEES, slug + '.sqlite'))
@@ -58,12 +71,15 @@ def main():
 		c = int(m['complets'])
 		total_p += p
 		total_c += c
-		w('| %s | %s | %s | %s | %s | %s | %s (%s) |' % (
+		np_, po = photos(slug)
+		total_ph += np_
+		w('| %s | %s | %s | %s | %s | %s | %s (%s) | %s (%s) |' % (
 			nom, site, n(m['lignes_source']), n(p), m['rayons'],
-			n(m['marques']), n(c), pct(c, p)))
+			n(m['marques']), n(c), pct(c, p), n(np_), pct(np_, p)))
 		details.append((slug, nom, site, db, m))
-	w('| **Total** | | | **%s** | | | **%s** (%s) |'
-	  % (n(total_p), n(total_c), pct(total_c, total_p)))
+	w('| **Total** | | | **%s** | | | **%s** (%s) | **%s** (%s) |'
+	  % (n(total_p), n(total_c), pct(total_c, total_p),
+	     n(total_ph), pct(total_ph, total_p)))
 	w('')
 	w('« Fiche complète » veut dire : un prix ET au moins une photo recensée.')
 	w('Les autres restent en ligne et consultables — elles sont signalées, pas')
@@ -86,6 +102,12 @@ def main():
 
 		sn = db.execute('SELECT COUNT(*) FROM produits WHERE note IS NULL').fetchone()[0]
 		w('- Sans note : **%s** (%s).' % (n(sn), pct(sn, p)))
+
+		np_, po = photos(slug)
+		if np_:
+			w('- Photos déposées : **%s** (%s), %s Mo sur le disque, %s ko par photo.'
+			  % (n(np_), pct(np_, p), ('%.0f' % (po / 1048576.0)),
+			     ('%.0f' % (po / 1000.0 / np_))))
 
 		a, b = db.execute('SELECT MIN(prix_cents), MAX(prix_cents) FROM produits'
 		                  ' WHERE prix_cents IS NOT NULL').fetchone()

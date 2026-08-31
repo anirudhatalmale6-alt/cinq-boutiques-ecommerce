@@ -1,7 +1,28 @@
-# Les catalogues et les CSV ne sont PAS dans ce depot : ce sont les donnees
-# des cinq sites d'origine. Le depot ne contient que le moteur et les outils.
+# Le depot contient le MOTEUR et les OUTILS. Il ne contient pas les donnees.
+#
+# Republier les catalogues des cinq commercants — leurs textes, leurs prix,
+# leurs photos — sur un depot public, c'est exactement la republication que
+# le projet refuse. Ce fichier fait que ca ne peut pas arriver par distraction.
+
 csv/
 donnees/
 sites/
+apercus2/
 *.sqlite
+*.zip
+
+# Les photos telechargees depuis les sites d'origine ne quittent jamais
+# le serveur de la boutique.
+photos/
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Sauf les captures d'ecran du moteur : elles montrent le rendu, elles ne
+# contiennent aucune photo produit telechargee ailleurs que sur ma machine.
+!apercus/
+!apercus/*.png
+
 __pycache__/
+*.pyc

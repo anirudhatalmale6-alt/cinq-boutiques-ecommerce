@@ -5,14 +5,14 @@ bases. Aucun n’est saisi à la main.
 
 ## Vue d’ensemble
 
-| Boutique | Source | Lignes CSV | Produits | Rayons | Marques | Fiches complètes |
-|---|---|---:|---:|---:|---:|---:|
-| Panier | voila.ca | 8 735 | 8 735 | 25 | 1 460 | 8 735 (100 %) |
-| Sillage | perfume.com | 6 958 | 6 958 | 3 | 688 | 6 958 (100 %) |
-| Marché d’Asie | tntsupermarket.com | 4 271 | 4 271 | 11 | 0 | 4 266 (99,9 %) |
-| Cueillette | foraged.com | 3 568 | 3 522 | 44 | 0 | 3 479 (99 %) |
-| Snack Monde | snacksfrom.com | 1 121 | 1 121 | 7 | 83 | 681 (61 %) |
-| **Total** | | | **24 607** | | | **24 119** (98 %) |
+| Boutique | Source | Lignes CSV | Produits | Rayons | Marques | Fiches complètes | Photos déposées |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Panier | voila.ca | 8 735 | 8 735 | 25 | 1 460 | 8 735 (100 %) | 0 (0 %) |
+| Sillage | perfume.com | 6 958 | 6 958 | 3 | 688 | 6 958 (100 %) | 6 812 (98 %) |
+| Marché d’Asie | tntsupermarket.com | 4 271 | 4 271 | 11 | 0 | 4 266 (99,9 %) | 1 505 (35 %) |
+| Cueillette | foraged.com | 3 568 | 3 522 | 44 | 0 | 3 479 (99 %) | 0 (0 %) |
+| Snack Monde | snacksfrom.com | 1 121 | 1 121 | 7 | 83 | 681 (61 %) | 681 (61 %) |
+| **Total** | | | **24 607** | | | **24 119** (98 %) | **8 998** (37 %) |
 
 « Fiche complète » veut dire : un prix ET au moins une photo recensée.
 Les autres restent en ligne et consultables — elles sont signalées, pas
@@ -31,6 +31,7 @@ cachées, et le filtre « fiches complètes » permet de les écarter.
 - Sans prix : **0** (0 %).
 - Sans aucune photo recensée : **0** (0 %).
 - Sans note : **4 278** (61 %).
+- Photos déposées : **6 812** (98 %), 227 Mo sur le disque, 35 ko par photo.
 - Prix : de 0.74 à 878.89, médiane 26.88.
 - Principaux rayons : Femme (3 223), Homme (2 128), Mixte (1 607).
 
@@ -39,8 +40,9 @@ cachées, et le filtre « fiches complètes » permet de les écarter.
 - Sans prix : **4** (0,1 %).
 - Sans aucune photo recensée : **1** (0,0 %).
 - Sans note : **4 271** (100 %).
+- Photos déposées : **1 505** (35 %), 50 Mo sur le disque, 35 ko par photo.
 - Prix : de 0.33 à 109.99, médiane 6.68.
-- Principaux rayons : Épicerie & sauces (1 867), Laitiers & surgelés (794), Viande & fruits de mer (505), Marque privée T&T (257), Fruits & légumes (251).
+- Principaux rayons : Épicerie & sauces (1 867), Laitiers & surgelés (794), Viande & fruits de mer (505), Marque privée (257), Fruits & légumes (251).
 
 ## Cueillette — foraged.com
 
@@ -56,6 +58,7 @@ cachées, et le filtre « fiches complètes » permet de les écarter.
 - Sans prix : **423** (38 %).
 - Sans aucune photo recensée : **440** (39 %).
 - Sans note : **1 121** (100 %).
+- Photos déposées : **681** (61 %), 25 Mo sur le disque, 38 ko par photo.
 - Prix : de 1.99 à 279.99, médiane 20.99.
 - Principaux rayons : Beverages (401), Snack (351), Candy (338), Instant (17), Miscellaneous (10).
 
